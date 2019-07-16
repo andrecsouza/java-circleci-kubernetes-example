@@ -8,9 +8,16 @@ jobs:
     working_directory: ~/java-circleci-kubernetes-example
     steps:
       - checkout
+      - restore_cache:
+         keys:
+           - m2-{{ checksum "pom.xml" }}
       - run:
           name: Build and Run tests
           command: mvn install
+      - save_cache:
+          key: m2-{{ checksum "pom.xml" }}
+          paths:
+            - ~/.m2
 
   deploy:
     docker:
@@ -18,12 +25,19 @@ jobs:
     working_directory: ~/java-circleci-kubernetes-example
     steps:
       - checkout
+      - restore_cache:
+         keys:
+           - m2-{{ checksum "pom.xml" }}
       - run:
           name: Setup
           command: echo SETUP
       - run:
           name: Deploy
           command: echo SETUP
+      - save_cache:
+          key: m2-{{ checksum "pom.xml" }}
+          paths:
+            - ~/.m2
 
 workflows:
   version: 2
