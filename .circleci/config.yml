@@ -5,19 +5,17 @@ jobs:
       - image: maven:3-jdk-8
        # Descomentar quando precisar de servico disponivel (em background)
 #      - image: tomcat:9-jdk11
-    working_directory: ~/circleci-demo-workflows
+    working_directory: ~/java-circleci-kubernetes-example
     steps:
       - checkout
       - run:
           name: Build and Run tests
-          command: rake
+          command: mvn install
 
   deploy:
     docker:
       - image: tomcat:9-jdk11
-    machine:
-        enabled: true
-    working_directory: ~/circleci-demo-workflows
+    working_directory: ~/java-circleci-kubernetes-example
     steps:
       - checkout
       - run:
