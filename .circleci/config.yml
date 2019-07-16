@@ -4,7 +4,7 @@ jobs:
     docker:
       - image: maven:3-jdk-8
        # Descomentar quando precisar de servico disponivel (em background)
-#      - image: circleci/postgres:9.4.12-alpine
+#      - image: tomcat:9-jdk11
     working_directory: ~/circleci-demo-workflows
     steps:
       - checkout
@@ -13,6 +13,8 @@ jobs:
           command: rake
 
   deploy:
+    docker:
+      - image: tomcat:9-jdk11
     machine:
         enabled: true
     working_directory: ~/circleci-demo-workflows
