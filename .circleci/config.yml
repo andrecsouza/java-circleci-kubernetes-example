@@ -21,10 +21,10 @@ jobs:
       - run:
          name: Prepare to make Application part of a Docker image
          command: cp -iv target/*.jar docker/
+      - docker/install-docker
       - docker/build:
           path: docker/
           image: application
-      - docker/install-docker
       - run:
          name: Run Docker image
          command: docker run -it -d --network=host application
