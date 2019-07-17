@@ -23,7 +23,7 @@ jobs:
             - ~/.m2
       - store_artifacts:
           path: ~/java-circleci-kubernetes-example/java-cicd-0.0.1-SNAPSHOT.jar
-          destination: /var/tmp/java-cicd-0.0.1-SNAPSHOT.jar
+          destination: /var/tmp/java-cicd.jar
 
   dockerize:
     executor: docker/machine
@@ -32,7 +32,7 @@ jobs:
       - checkout
       - run:
          name: Prepare to make Application part of a Docker image
-         command: cp -iv /var/tmp/*.jar docker/
+         command: ls -l /var/tmp/ && cp -iv /var/tmp/java-cicd.jar docker/
       - docker/install-docker
       - docker/build:
           path: docker/
