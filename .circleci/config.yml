@@ -24,7 +24,6 @@ jobs:
           key: m2-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
-            - /var/tmp/java-cicd.jar
 
   dockerize:
     executor: docker/machine
@@ -34,13 +33,13 @@ jobs:
       - restore_cache:
          keys:
            - m2-{{ checksum "pom.xml" }}
-      - run:
-         name: Prepare to make Application part of a Docker image
-         command: ls -l /var/tmp/ && cp -iv /var/tmp/java-cicd.jar docker/
-      - docker/install-docker
+      #- run:
+      #   name: Prepare to make Application part of a Docker image
+      #   command: ls -l /var/tmp/ && cp -iv /var/tmp/java-cicd.jar docker/
       - docker/build:
           path: docker/
           image: andrecsouza/application:${CIRCLE_BUILD_NUM}
+      - docker/install-docker
       - run:
          name: Run Docker image
          command: docker run -it -d --network=host andrecsouza/application:${CIRCLE_BUILD_NUM}
