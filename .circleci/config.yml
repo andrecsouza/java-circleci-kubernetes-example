@@ -23,10 +23,10 @@ jobs:
           destination: /var/tmp/java-cicd.jar
       - run:
          name: Prepare to make Application part of a Docker image
-         command: cp -iv target/*.jar docker/
+         command: cp -iv target/*.jar container/
       - docker/install-docker
       - docker/build:
-          path: docker/
+          path: ~/java-circleci-kubernetes-example/container/
           image: application
       - run:
          name: Run Docker image
@@ -46,9 +46,9 @@ jobs:
       - checkout
       - run:
          name: Prepare to make Application part of a Docker image
-         command: ls -l /var/tmp/ && cp -iv /var/tmp/java-cicd.jar docker/
+         command: ls -l /var/tmp/ && cp -iv /var/tmp/java-cicd.jar container/
       - docker/build:
-          path: docker/
+          path: container/
           image: application
       - docker/install-docker
       - run:
