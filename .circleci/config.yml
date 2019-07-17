@@ -21,6 +21,7 @@ jobs:
       - run:
          name: Run application
          command: java -jar target/*.jar
+         background: true
       #- run:
       #   name: Prepare to make Application part of a Docker image
       #   command: cp -iv target/*.jar container/
