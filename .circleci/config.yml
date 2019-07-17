@@ -30,9 +30,6 @@ jobs:
     working_directory: ~/java-circleci-kubernetes-example
     steps:
       - checkout
-      - restore_cache:
-         keys:
-           - m2-{{ checksum "pom.xml" }}
       #- run:
       #   name: Prepare to make Application part of a Docker image
       #   command: ls -l /var/tmp/ && cp -iv /var/tmp/java-cicd.jar docker/
