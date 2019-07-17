@@ -6,8 +6,6 @@ jobs:
   build:
     docker:
       - image: maven:3-jdk-8
-       # Descomentar quando precisar de servico disponivel (em background)
-#      - image: openjdk:12-jdk-oracle
     working_directory: ~/java-circleci-kubernetes-example
     steps:
       - checkout
@@ -20,6 +18,19 @@ jobs:
       - store_artifacts:
           path: ~/java-circleci-kubernetes-example/java-cicd-0.0.1-SNAPSHOT.jar
           destination: /var/tmp/java-cicd.jar
+      - run:
+         name: Prepare to make Application part of a Docker image
+         command: cp -iv target/*.jar docker/
+      - docker/build:
+          path: docker/
+          image: application
+      - docker/install-docker
+      - run:
+         name: Run Docker image
+         command: docker run -it -d --network=host application
+      - run:
+         name: Invoke health endpoint
+         command: sleep 10s && curl http://localhost:8080/actuator
       - save_cache:
           key: m2-{{ checksum "pom.xml" }}
           paths:
@@ -30,9 +41,9 @@ jobs:
     working_directory: ~/java-circleci-kubernetes-example
     steps:
       - checkout
-      #- run:
-      #   name: Prepare to make Application part of a Docker image
-      #   command: ls -l /var/tmp/ && cp -iv /var/tmp/java-cicd.jar docker/
+      - run:
+         name: Prepare to make Application part of a Docker image
+         command: ls -l /var/tmp/ && cp -iv /var/tmp/java-cicd.jar docker/
       - docker/build:
           path: docker/
           image: application
@@ -68,10 +79,11 @@ workflows:
   build-and-deploy:
     jobs:
       - build
-      - dockerize:
+      - deploy:
+      #- dockerize:
           requires:
             - build
-      - deploy:
-          requires:
-            - dockerize
+      #- deploy:
+      #    requires:
+      #      - dockerize
 
