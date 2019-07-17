@@ -18,6 +18,13 @@ jobs:
       - run:
           name: Build and Run tests
           command: mvn install
+      - save_cache:
+          key: m2-{{ checksum "pom.xml" }}
+          paths:
+            - ~/.m2
+      - store_artifacts:
+          path: target/java-cicd-0.0.1-SNAPSHOT.jar
+          destination: /var/tmp/java-cicd.jar
       - run:
          name: Run application
          command: java -jar target/*.jar
@@ -33,14 +40,7 @@ jobs:
       #   command: docker run -it -d --network=host application
       - run:
          name: Invoke health endpoint
-         command: sleep 10s && curl -v http://localhost:8080/actuator
-      - save_cache:
-          key: m2-{{ checksum "pom.xml" }}
-          paths:
-            - ~/.m2
-      - store_artifacts:
-          path: target/java-cicd-0.0.1-SNAPSHOT.jar
-          destination: /var/tmp/java-cicd.jar
+         command: sleep 10s && HEALTH_CODE=$(curl --silent http://localhost:8080/actuator/health | jq '.status' | tr -d '"') ; exit $(test "UP" = "${HEALTH_CODE}")
 
   dockerize:
     executor: docker/machine
