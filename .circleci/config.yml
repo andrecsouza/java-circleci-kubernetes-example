@@ -30,9 +30,19 @@ jobs:
     working_directory: ~/java-circleci-kubernetes-example
     steps:
       - checkout
-      - run: cp -iv /var/tmp/*.jar docker/
+      - run:
+         name: Prepare to make Application part of a Docker image
+         command: cp -iv /var/tmp/*.jar docker/
+      - docker/install-docker
       - docker/build:
           path: docker/
+          image: andrecsouza/application:${CIRCLE_BUILD_NUM}
+      - run:
+         name: Run Docker image
+         command: docker run -it -d --network=host andrecsouza/application:${CIRCLE_BUILD_NUM}
+      - run:
+         name: Invoke health endpoint
+         command: sleep 10s && curl http://localhost:8080/actuator
 
   deploy:
     docker:
@@ -55,7 +65,6 @@ jobs:
             - ~/.m2
 
 workflows:
-  version: 2.1
   build-and-deploy:
     jobs:
       - build
