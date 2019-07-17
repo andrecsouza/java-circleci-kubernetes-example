@@ -40,7 +40,7 @@ jobs:
       #   command: docker run -it -d --network=host application
       - run:
          name: Invoke health endpoint
-         command: sleep 10s && HEALTH_CODE=$(curl --silent http://localhost:8080/actuator/health | jq '.status' | tr -d '"') ; exit $(test "DOWN" = "${HEALTH_CODE}")
+         command: sleep 10s && HEALTH_CODE=$(curl --silent http://localhost:8080/actuator/health | jq '.status' | tr -d '"') ; exit $(test "UP" = "${HEALTH_CODE}")
 
   dockerize:
     executor: docker/machine
