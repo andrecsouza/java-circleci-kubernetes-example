@@ -18,9 +18,6 @@ jobs:
       - run:
           name: Build and Run tests
           command: mvn install
-      - store_artifacts:
-          path: ~/java-circleci-kubernetes-example/java-cicd-0.0.1-SNAPSHOT.jar
-          destination: /var/tmp/java-cicd.jar
       - run:
          name: Prepare to make Application part of a Docker image
          command: cp -iv target/*.jar container/
@@ -38,6 +35,9 @@ jobs:
           key: m2-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
+      - store_artifacts:
+          path: target/java-cicd-0.0.1-SNAPSHOT.jar
+          destination: /var/tmp/java-cicd.jar
 
   dockerize:
     executor: docker/machine
