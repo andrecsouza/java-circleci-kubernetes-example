@@ -13,6 +13,9 @@ jobs:
          keys:
            - m2-{{ checksum "pom.xml" }}
       - run:
+          name: Install dependencies
+          command: apt-get update && apt-get install -y jq
+      - run:
           name: Build and Run tests
           command: mvn install
       - store_artifacts:
