@@ -19,18 +19,20 @@ jobs:
           name: Build and Run tests
           command: mvn install
       - run:
-         name: Prepare to make Application part of a Docker image
-         command: cp -iv target/*.jar container/
-      - docker/install-docker
-      - docker/build:
-          path: ~/java-circleci-kubernetes-example/container/
-          image: application
-      - run:
-         name: Run Docker image
-         command: docker run -it -d --network=host application
+         name: Run application
+         command: java -jar target/*.jar
+      #- run:
+      #   name: Prepare to make Application part of a Docker image
+      #   command: cp -iv target/*.jar container/
+      #- docker/build:
+      #    path: ~/java-circleci-kubernetes-example/container/
+      #    image: application
+      #- run:
+      #   name: Run Docker image
+      #   command: docker run -it -d --network=host application
       - run:
          name: Invoke health endpoint
-         command: sleep 10s && curl http://localhost:8080/actuator
+         command: sleep 10s && curl -v http://localhost:8080/actuator
       - save_cache:
           key: m2-{{ checksum "pom.xml" }}
           paths:
