@@ -35,11 +35,11 @@ jobs:
       #   command: ls -l /var/tmp/ && cp -iv /var/tmp/java-cicd.jar docker/
       - docker/build:
           path: docker/
-          image: application:${CIRCLE_BUILD_NUM}
+          image: application
       - docker/install-docker
       - run:
          name: Run Docker image
-         command: docker run -it -d --network=host application:${CIRCLE_BUILD_NUM}
+         command: docker run -it -d --network=host application
       - run:
          name: Invoke health endpoint
          command: sleep 10s && curl http://localhost:8080/actuator
