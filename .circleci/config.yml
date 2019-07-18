@@ -13,9 +13,6 @@ jobs:
          keys:
            - m2-{{ checksum "pom.xml" }}
       - run:
-          name: Install dependencies
-          command: apt-get update && apt-get install -y jq
-      - run:
           name: Build and Run tests
           command: mvn install
       - save_cache:
@@ -40,6 +37,9 @@ jobs:
           at: ~/java-circleci-kubernetes-example
       - setup_remote_docker:
           docker_layer_caching: true
+      - run:
+          name: Install dependencies
+          command: apt-get update && apt-get install -y jq
       - run:
          name: Prepare to make Application part of a Docker image
          command: cp -iv target/*.jar container/application.jar
