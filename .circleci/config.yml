@@ -49,7 +49,7 @@ jobs:
           image: application
       - run:
          name: Run Docker image
-         command: docker run -it -d --network=host application
+         command: docker run -it -d --network=host application:${CIRCLE_SHA1}
          background: true
       - run:
          name: Invoke health endpoint
