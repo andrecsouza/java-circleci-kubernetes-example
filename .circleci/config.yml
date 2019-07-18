@@ -42,7 +42,8 @@ jobs:
           docker_layer_caching: true
       - run:
          name: Prepare to make Application part of a Docker image
-         command: cp -iv target/*.jar container/
+         command: cp -iv target/*.jar container/application.jar
+      - docker/install-docker-tools
       - docker/build:
           path: ~/java-circleci-kubernetes-example/container/
           image: application
