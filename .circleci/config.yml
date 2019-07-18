@@ -25,44 +25,37 @@ jobs:
       - store_artifacts:
           path: target/java-cicd-0.0.1-SNAPSHOT.jar
           destination: /var/tmp/java-cicd.jar
+      - persist_to_workspace:
+          root: ~/java-circleci-kubernetes-example
+          paths:
+            - target/*.jar
+            - container/
+
+  create-container:
+    docker:
+      - image: maven:3-jdk-8
+    working_directory: ~/java-circleci-kubernetes-example
+    steps:
+      - attach_workspace:
+          at: ~/java-circleci-kubernetes-example
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run:
-         name: Run application
-         command: java -jar target/*.jar
+         name: Prepare to make Application part of a Docker image
+         command: cp -iv target/*.jar container/
+      - docker/build:
+          path: ~/java-circleci-kubernetes-example/container/
+          image: application
+      - run:
+         name: Run Docker image
+         command: docker run -it -d --network=host application
          background: true
-      #- run:
-      #   name: Prepare to make Application part of a Docker image
-      #   command: cp -iv target/*.jar container/
-      #- docker/build:
-      #    path: ~/java-circleci-kubernetes-example/container/
-      #    image: application
-      #- run:
-      #   name: Run Docker image
-      #   command: docker run -it -d --network=host application
       - run:
          name: Invoke health endpoint
          command: |
            sleep 10s
            HEALTH_CODE=$(curl --silent http://localhost:8080/actuator/health | jq '.status' | tr -d '"')
            exit $(test "UP" = "${HEALTH_CODE}")
-
-  dockerize:
-    executor: docker/machine
-    working_directory: ~/java-circleci-kubernetes-example
-    steps:
-      - checkout
-      - run:
-         name: Prepare to make Application part of a Docker image
-         command: ls -l /var/tmp/ && cp -iv /var/tmp/java-cicd.jar container/
-      - docker/build:
-          path: container/
-          image: application
-      - docker/install-docker
-      - run:
-         name: Run Docker image
-         command: docker run -it -d --network=host application
-      - run:
-         name: Invoke health endpoint
-         command: sleep 10s && curl http://localhost:8080/actuator
 
   deploy:
     docker:
@@ -88,11 +81,10 @@ workflows:
   build-and-deploy:
     jobs:
       - build
-      - deploy:
-      #- dockerize:
+      - create-container:
           requires:
             - build
-      #- deploy:
-      #    requires:
-      #      - dockerize
+      - deploy:
+          requires:
+            - create-container
 
