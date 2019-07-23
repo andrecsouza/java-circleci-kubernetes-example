@@ -54,7 +54,7 @@ jobs:
       - docker/install-docker-tools
       - docker/build:
           path: ~/java-circleci-kubernetes-example/container/
-          image: java-circleci-kubernetes-example
+          image: andrecsouza/java-circleci-kubernetes-example
       - run:
           name: Publish containerized application
           command: |
