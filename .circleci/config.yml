@@ -47,7 +47,7 @@ jobs:
           docker_layer_caching: true
       - run:
           name: Install dependencies
-          command: apt-get update && apt-get install -y jq
+          command: sudo apt-get update && sudo apt-get install -y jq
       - run:
          name: Prepare to make Application part of a Docker image
          command: cp -iv target/*.jar container/application.jar
