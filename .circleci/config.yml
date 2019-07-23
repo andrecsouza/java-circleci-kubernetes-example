@@ -56,6 +56,40 @@ jobs:
           path: ~/java-circleci-kubernetes-example/container/
           image: andrecsouza/java-circleci-kubernetes-example
       - run:
+         name: Save Docker image for later use
+         command: |
+             docker save andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1} -o images.tar
+      - persist_to_workspace:
+          root: ~/java-circleci-kubernetes-example
+          paths:
+            - target/*.jar
+            - container/
+            - images.tar
+
+  publish-container:
+    executor: docker-publisher
+    working_directory: ~/java-circleci-kubernetes-example
+    steps:
+      - attach_workspace:
+          at: ~/java-circleci-kubernetes-example
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Install dependencies
+          command: sudo apt-get update && sudo apt-get install -y jq
+      - docker/install-docker-tools
+      - run:
+         name: Retrieve Docker image from previous jobs
+         command: |
+             docker load images.tar
+             docker tag andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1} andrecsouza/java-circleci-kubernetes-example:latest
+      - run:
+          name: Publish containerized application
+          command: |
+              echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+              docker push andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1}
+              docker push andrecsouza/java-circleci-kubernetes-example:latest
+      - run:
          name: Run Docker image
          command: docker run -it -d --network=host andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1}
          background: true
@@ -65,11 +99,6 @@ jobs:
            sleep 10s
            HEALTH_CODE=$(curl --silent http://localhost:8080/actuator/health | jq '.status' | tr -d '"')
            exit $(test "UP" = "${HEALTH_CODE}")
-      - run:
-          name: Publish containerized application
-          command: |
-              echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-              docker push andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1}
 
   deploy:
     docker:
@@ -98,7 +127,10 @@ workflows:
       - create-container:
           requires:
             - build
-      - deploy:
+      - publish-container:
           requires:
             - create-container
+      - deploy:
+          requires:
+            - publish-container
 
