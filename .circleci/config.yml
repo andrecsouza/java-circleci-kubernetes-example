@@ -56,20 +56,20 @@ jobs:
           path: ~/java-circleci-kubernetes-example/container/
           image: andrecsouza/java-circleci-kubernetes-example
       - run:
+         name: Run Docker image
+         command: docker run -it -d --network=host andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1}
+         background: true
+      - run:
+         name: Invoke health endpoint
+         command: |
+           sleep 10s
+           HEALTH_CODE=$(curl --silent http://localhost:8080/actuator/health | jq '.status' | tr -d '"')
+           exit $(test "UP" = "${HEALTH_CODE}")
+      - run:
           name: Publish containerized application
           command: |
               echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
               docker push andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1}
-      #- run:
-      #   name: Run Docker image
-      #   command: docker run -it -d --network=host andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1}
-      #   background: true
-      #- run:
-      #   name: Invoke health endpoint
-      #   command: |
-      #     sleep 10s
-      #     HEALTH_CODE=$(curl --silent http://localhost:8080/actuator/health | jq '.status' | tr -d '"')
-      #     exit $(test "UP" = "${HEALTH_CODE}")
 
   deploy:
     docker:
