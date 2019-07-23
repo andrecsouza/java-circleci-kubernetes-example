@@ -1,5 +1,10 @@
 version: 2.1
 
+executors:
+  docker-publisher:
+    docker:
+      - image: circleci/buildpack-deps:stretch
+
 orbs:
   docker: circleci/docker@0.5.8
 
@@ -33,8 +38,7 @@ jobs:
             - container/
 
   create-container:
-    docker:
-      - image: maven:3-jdk-8
+    executor: docker-publisher
     working_directory: ~/java-circleci-kubernetes-example
     steps:
       - attach_workspace:
@@ -50,17 +54,22 @@ jobs:
       - docker/install-docker-tools
       - docker/build:
           path: ~/java-circleci-kubernetes-example/container/
-          image: application
+          image: java-circleci-kubernetes-example
       - run:
-         name: Run Docker image
-         command: docker run -it -d --network=host application:${CIRCLE_SHA1}
-         background: true
-      - run:
-         name: Invoke health endpoint
-         command: |
-           sleep 10s
-           HEALTH_CODE=$(curl --silent http://localhost:8080/actuator/health | jq '.status' | tr -d '"')
-           exit $(test "UP" = "${HEALTH_CODE}")
+          name: Publish containerized application
+          command: |
+              echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+              docker push andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1}
+      #- run:
+      #   name: Run Docker image
+      #   command: docker run -it -d --network=host andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1}
+      #   background: true
+      #- run:
+      #   name: Invoke health endpoint
+      #   command: |
+      #     sleep 10s
+      #     HEALTH_CODE=$(curl --silent http://localhost:8080/actuator/health | jq '.status' | tr -d '"')
+      #     exit $(test "UP" = "${HEALTH_CODE}")
 
   deploy:
     docker:
