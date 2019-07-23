@@ -81,7 +81,7 @@ jobs:
       - run:
          name: Retrieve Docker image from previous jobs
          command: |
-             docker load images.tar
+             docker load -i images.tar
              docker tag andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1} andrecsouza/java-circleci-kubernetes-example:latest
       - run:
           name: Publish containerized application
