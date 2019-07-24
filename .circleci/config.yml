@@ -91,7 +91,11 @@ jobs:
               docker push andrecsouza/java-circleci-kubernetes-example:latest
       - run:
          name: Run Docker image
-         command: docker run -it -d --network=host andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1}
+         command: |
+           docker run -it -d --network=host andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1}
+           sleep 10s
+           HEALTH_CODE=$(curl --silent http://localhost:8080/actuator/health | jq '.status' | tr -d '"')
+           exit $(test "UP" = "${HEALTH_CODE}")
          background: true
       - run:
          name: Invoke health endpoint
@@ -101,24 +105,19 @@ jobs:
            exit $(test "UP" = "${HEALTH_CODE}")
 
   deploy:
-    docker:
-      - image: tomcat:9-jdk11
+    executor: docker-publisher
     working_directory: ~/java-circleci-kubernetes-example
     steps:
-      - checkout
-      - restore_cache:
-         keys:
-           - m2-{{ checksum "pom.xml" }}
+      - attach_workspace:
+          at: ~/java-circleci-kubernetes-example
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run:
           name: Setup
           command: echo SETUP
       - run:
           name: Deploy
           command: echo SETUP
-      - save_cache:
-          key: m2-{{ checksum "pom.xml" }}
-          paths:
-            - ~/.m2
 
 workflows:
   build-and-deploy:
