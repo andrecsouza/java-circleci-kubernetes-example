@@ -92,6 +92,7 @@ jobs:
       - run:
          name: Run Docker image / Invoke health endpoint
          command: |
+           set -x
            docker run -it -d --network=host --name application andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1}
            for TRY in $(seq 1 4)
            do
@@ -99,6 +100,7 @@ jobs:
                HEALTH_CODE=$(curl --silent http://localhost:8080/actuator/health | jq '.status' | tr -d '"')
                test "UP" = "${HEALTH_CODE}" && exit 0
            done
+           set +x
            exit 1
 
   deploy:
