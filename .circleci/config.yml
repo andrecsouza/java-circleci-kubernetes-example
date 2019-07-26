@@ -1,15 +1,16 @@
 version: 2.1
 
-environment:
-  IMAGE_TAG: ${CIRCLE_BUILD_NUM}
-
 executors:
   docker-publisher:
     docker:
       - image: circleci/buildpack-deps:stretch
+  google-cloud:
+    docker:
+      - image: gcp-cli/default
 
 orbs:
   docker: circleci/docker@0.5.8
+  gcp-cli: circleci/gcp-cli@1.8.2
 
 jobs:
   build:
@@ -58,11 +59,11 @@ jobs:
       - docker/build:
           path: ~/java-circleci-kubernetes-example/container/
           image: andrecsouza/java-circleci-kubernetes-example
-          tag: ${IMAGE_TAG}
+          tag: ${CIRCLE_BUILD_NUM}
       - run:
          name: Save Docker image for later use
          command: |
-             docker save andrecsouza/java-circleci-kubernetes-example:${IMAGE_TAG} -o images.tar
+             docker save andrecsouza/java-circleci-kubernetes-example:${CIRCLE_BUILD_NUM} -o images.tar
       - persist_to_workspace:
           root: ~/java-circleci-kubernetes-example
           paths:
@@ -86,22 +87,21 @@ jobs:
          name: Retrieve Docker image from previous jobs
          command: |
              docker load -i images.tar
-             docker tag andrecsouza/java-circleci-kubernetes-example:${IMAGE_TAG} andrecsouza/java-circleci-kubernetes-example:latest
+             docker tag andrecsouza/java-circleci-kubernetes-example:${CIRCLE_BUILD_NUM} andrecsouza/java-circleci-kubernetes-example:latest
       - run:
           name: Publish containerized application
           command: |
               echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-              docker push andrecsouza/java-circleci-kubernetes-example:${IMAGE_TAG}
+              docker push andrecsouza/java-circleci-kubernetes-example:${CIRCLE_BUILD_NUM}
               docker push andrecsouza/java-circleci-kubernetes-example:latest
 
   deploy:
-    executor: docker-publisher
+    executor: google-cloud
     working_directory: ~/java-circleci-kubernetes-example
     steps:
       - attach_workspace:
           at: ~/java-circleci-kubernetes-example
-      - setup_remote_docker:
-          docker_layer_caching: true
+      - gcp-cli/install
       - run:
           name: Setup
           command: echo SETUP
