@@ -77,8 +77,10 @@ jobs:
               gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
               gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
       - run:
-          name: Deploy
-          command: gcloud compute instances update-container ${GCLOUD_INSTANCE} --container-image andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1}
+          name: Deploy application
+          command: |
+              gcloud compute instances update-container ${GCLOUD_INSTANCE} --container-image andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1}
+              gcloud compute instances start ${GCLOUD_INSTANCE}
 
 workflows:
   build-and-deploy:
@@ -87,7 +89,11 @@ workflows:
       - create-and-publish-container:
           requires:
             - build
-      - deploy:
+      - deploy-approval:
+          type: approval
           requires:
             - create-and-publish-container
+      - deploy:
+          requires:
+            - deploy-approval
 
