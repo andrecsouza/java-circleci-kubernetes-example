@@ -4,9 +4,6 @@ executors:
   docker-publisher:
     docker:
       - image: circleci/buildpack-deps:stretch
-  google-cloud:
-    docker:
-      - image: gcp-cli/default
 
 orbs:
   docker: circleci/docker@0.5.8
@@ -96,18 +93,18 @@ jobs:
               docker push andrecsouza/java-circleci-kubernetes-example:latest
 
   deploy:
-    executor: google-cloud
+    docker:
+      - image: google/cloud-sdk
     working_directory: ~/java-circleci-kubernetes-example
     steps:
       - attach_workspace:
           at: ~/java-circleci-kubernetes-example
-      - gcp-cli/install
       - run:
           name: Setup
-          command: echo SETUP
+          command: gcloud config list
       - run:
           name: Deploy
-          command: echo SETUP
+          command: gcloud compute instances update-container ${GCLOUD_INSTANCE} --container-image andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1}
 
 workflows:
   build-and-deploy:
