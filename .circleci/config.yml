@@ -100,8 +100,11 @@ jobs:
       - attach_workspace:
           at: ~/java-circleci-kubernetes-example
       - run:
-          name: Setup
-          command: gcloud config list
+          name: Authenticate to Cloud Platform
+          command: |
+              echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
+              gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
+              gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
       - run:
           name: Deploy
           command: gcloud compute instances update-container ${GCLOUD_INSTANCE} --container-image andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1}
