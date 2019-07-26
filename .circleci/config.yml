@@ -38,7 +38,7 @@ jobs:
             - target/*.jar
             - container/
 
-  create-container:
+  create-and-publish-container:
     executor: docker-publisher
     working_directory: ~/java-circleci-kubernetes-example
     steps:
@@ -58,37 +58,10 @@ jobs:
           image: andrecsouza/java-circleci-kubernetes-example
           tag: ${CIRCLE_SHA1}
       - run:
-         name: Save Docker image for later use
-         command: |
-             docker save andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1} -o images.tar
-      - persist_to_workspace:
-          root: ~/java-circleci-kubernetes-example
-          paths:
-            - target/*.jar
-            - container/
-            - images.tar
-
-  publish-container:
-    executor: docker-publisher
-    working_directory: ~/java-circleci-kubernetes-example
-    steps:
-      - attach_workspace:
-          at: ~/java-circleci-kubernetes-example
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run:
-          name: Install dependencies
-          command: sudo apt-get update && sudo apt-get install -y jq
-      - docker/install-docker-tools
-      - run:
-         name: Retrieve Docker image from previous jobs
-         command: |
-             docker load -i images.tar
-             docker tag andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1} andrecsouza/java-circleci-kubernetes-example:latest
-      - run:
           name: Publish containerized application
           command: |
               echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+              docker tag andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1} andrecsouza/java-circleci-kubernetes-example:latest
               docker push andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1}
               docker push andrecsouza/java-circleci-kubernetes-example:latest
 
@@ -97,8 +70,6 @@ jobs:
       - image: google/cloud-sdk
     working_directory: ~/java-circleci-kubernetes-example
     steps:
-      - attach_workspace:
-          at: ~/java-circleci-kubernetes-example
       - run:
           name: Authenticate to Cloud Platform
           command: |
@@ -113,13 +84,10 @@ workflows:
   build-and-deploy:
     jobs:
       - build
-      - create-container:
+      - create-and-publish-container:
           requires:
             - build
-      - publish-container:
-          requires:
-            - create-container
       - deploy:
           requires:
-            - publish-container
+            - create-and-publish-container
 
