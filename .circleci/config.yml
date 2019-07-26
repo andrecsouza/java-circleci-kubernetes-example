@@ -59,11 +59,11 @@ jobs:
       - docker/build:
           path: ~/java-circleci-kubernetes-example/container/
           image: andrecsouza/java-circleci-kubernetes-example
-          tag: ${CIRCLE_BUILD_NUM}
+          tag: ${CIRCLE_SHA1}
       - run:
          name: Save Docker image for later use
          command: |
-             docker save andrecsouza/java-circleci-kubernetes-example:${CIRCLE_BUILD_NUM} -o images.tar
+             docker save andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1} -o images.tar
       - persist_to_workspace:
           root: ~/java-circleci-kubernetes-example
           paths:
@@ -87,12 +87,12 @@ jobs:
          name: Retrieve Docker image from previous jobs
          command: |
              docker load -i images.tar
-             docker tag andrecsouza/java-circleci-kubernetes-example:${CIRCLE_BUILD_NUM} andrecsouza/java-circleci-kubernetes-example:latest
+             docker tag andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1} andrecsouza/java-circleci-kubernetes-example:latest
       - run:
           name: Publish containerized application
           command: |
               echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-              docker push andrecsouza/java-circleci-kubernetes-example:${CIRCLE_BUILD_NUM}
+              docker push andrecsouza/java-circleci-kubernetes-example:${CIRCLE_SHA1}
               docker push andrecsouza/java-circleci-kubernetes-example:latest
 
   deploy:
